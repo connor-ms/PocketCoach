@@ -10,7 +10,7 @@
 1. The user provides an unrealistic daily caloric goal (ex: 500 calories/day).
     - The service will alert the user that it's an unsafe daily goal, and will suggest the lowest safe goal.
 2. The user attempts to log an unexpected exercise type (ex: they make a typo, and enter "runing" instead of "running").
-    - The service will alert the user that an unsupported exercise type was submitted, and will let the user know what exercies are allowed.
+    - The service will alert the user that an unsupported exercise type was submitted, and will let the user know what exercise types are allowed.
 3. An ingredient has missing information and is used in a recipe.
 
     - The service will alert that there's missing macros, so the net total will be inaccurate.
