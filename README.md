@@ -1,4 +1,4 @@
-# Group-Project-CSC-365
+# PocketBully - A fitness tracker that bullies you
 
 Seth Ryan Langel slangel@calpoly.edu
 
