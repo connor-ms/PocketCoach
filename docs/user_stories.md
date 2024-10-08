@@ -8,9 +8,9 @@
 6. As a dietition, I want to keep track of my clients intake.
 7. As a person with dietary restrictions, I want to remove ingredients from all my food/recipe options.
 8. As a person who wants to meal prep more, I want to be able to store recipes with the nutritional facts.
-9. As a student, I want to be able to create a diet that maintains my current body weight
-10. As a vegetarian, I want to be able to sort by specific food categories
-11. As a person which low in vitamins, I want to be able to see the amount of vitamins in my food.
+9. As a student, I want to be able to create a diet that maintains my current body weight.
+10. As a vegetarian, I want to be able to sort by specific food categories.
+11. As a person who's low in vitamins, I want to be able to see the amount of vitamins in my food.
 12. As a person with limited time, I want to be able to sort by amount of meals a day.
 
 # Exceptions
@@ -30,28 +30,28 @@
 4. The user attempts to delete an ingredient that's being used in a recipe.
     - The service prevents deletion of any ingredient until it's not referenced in a recipe. It will alert what recipe(s) the ingredient is being used in.
 
-5. The user tries to share a meal plan with another user but, the user doesnt exist. 
-    - The service prevents this and tells the user that the receiving user doesnt exist.
+5. The user tries to share a meal plan with another user, but the user doesnt exist. 
+    - The service prevents this and tells the user that the receiving user doesn't exist.
   
-6. The user tries to view another users intake, but they dont have permussion to view the other users intake.
+6. The user tries to view another users intake, but they don't have permission to view the other users intake.
     - The service prevents this and prompts the initial user to send a request to the receiving user asking permission to view intake for a range in time.
   
-7. The user tries to add a recipe but, it includes a ingredient that they added to their blacklist.
+7. The user tries to add a recipe, but it includes an ingredient that they added to their blacklist.
     - The service will alert the user of the ingredient and give them the option to still add the recipe or to cancel the action.
   
 8. The user tries to add a recipe into their digital cookbook but has missing nutritional information.
     - The service will alert the user what information is missing and prompt them to add the info if they wish.
 
 9. The user tries to build their meal plan without entering their BMI.
-    - The service prevents them from finalizing without entering their BMI
+    - The service prevents them from finalizing without entering their BMI.
 
 10. The user tries to select blacklisted ingredients.
-    - The service will not allow them to add certain groups without changing their category
+    - The service will not allow them to add certain groups without changing their category.
 
-11. The user tries select foods that will not match their needed intake
-    - The service will alert them to not meeting their necessary intakes
+11. The user tries select foods that will not match their needed intake.
+    - The service will alert them to not meeting their necessary intakes.
 
-12. The user tries to select to low of meals a day which will not meet their nutritional values
-    - The system will notify the user that it won't be poissible to meet nutrional standards with too low of a meal(s) a day
+12. The user tries to select too few meals a day, which will not meet their nutritional values.
+    - The system will notify the user that it won't be poissible to meet nutrional standards with too low of a meal(s) a day.
   
    
