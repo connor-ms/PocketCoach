@@ -30,13 +30,13 @@
 4. The user attempts to delete an ingredient that's being used in a recipe.
     - The service prevents deletion of any ingredient until it's not referenced in a recipe. It will alert what recipe(s) the ingredient is being used in.
 
-5. The user tries to share a meal plan with another user.
-    - The service prevents the receiving user to import the new meal plan due to conflicting micro/macro goals. It will alert the receiving user of new micro/macro goals and if they are          okay with the changes
+5. The user tries to share a meal plan with another user but, the user doesnt exist. 
+    - The service prevents this and tells the user that the receiving user doesnt exist.
   
-6. The user tries to view another users intake.
+6. The user tries to view another users intake, but they dont have permussion to view the other users intake.
     - The service prevents this and prompts the initial user to send a request to the receiving user asking permission to view intake for a range in time.
   
-7. The user tries to add a recipe that includes a ingredient that they added to their blacklist.
+7. The user tries to add a recipe but, it includes a ingredient that they added to their blacklist.
     - The service will alert the user of the ingredient and give them the option to still add the recipe or to cancel the action.
   
 8. The user tries to add a recipe into their digital cookbook but has missing nutritional information.
