@@ -5,7 +5,7 @@
 3. As a restaurant owner, I want to be able to log the calorie count of my recipes.
 4. As a personal chef, I want to be able to save my favorite recipes.
 5. As a personal trainer, I want to be able to share meal plans with my clients.
-6. As a diatition, I want to keep track of my clients intake.
+6. As a dietition, I want to keep track of my clients intake.
 7. As a person with dietary restrictions, I want to remove ingredients from all my food/recipe options.
 8. As a person who wants to meal prep more, I want to be able to store recipes with the nutritional facts.
 9. As a student, I want to be able to create a diet that maintains my current body weight
