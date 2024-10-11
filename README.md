@@ -4,7 +4,7 @@ Seth Ryan Langel slangel@calpoly.edu
 
 Connor Michael Sullivan csulli46@calpoly.edu
 
-~Joel Bravo jbravo23@calpoly.edu~ (Dropped due to missing prereq)
+Salif Sanogo sanogo@calpoly.edu
 
 Jose De Jesus Espinoza jespi101@calpoly.edu
 
