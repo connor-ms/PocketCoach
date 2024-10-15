@@ -235,7 +235,10 @@ Retrieves a recipe.
             // /ingredient/{ingredient_id} response
         },
         ...
-    ]
+    ],
+    "net_calories": "integer",
+    "net_protein": "integer",
+    "net_carbs": "integer"
 }
 ```
 
