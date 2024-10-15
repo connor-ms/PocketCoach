@@ -5,7 +5,7 @@
 The API calls are made in this sequence when creating and editing an account:
 
 1. `Register User`
-2. `User Login`
+2. `Update Account`
 
 ### 1.1. Register Account `/user/` (POST)
 
