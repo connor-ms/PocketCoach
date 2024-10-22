@@ -1,2 +1,9 @@
 .DS_Store
 CompFoodCSV/
+.venv/
+.idea
+__pycache__
+node_modules/
+
+/.env
+info.log
