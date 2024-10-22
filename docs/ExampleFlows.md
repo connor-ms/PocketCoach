@@ -7,7 +7,7 @@ The API calls are made in this sequence when creating and editing an account:
 1. `Register User`
 2. `Update Account`
 
-User will come into the website and click create register account in order to use the provided services. During creation, they will provide their age, weight, and height. For reference, there will be no authorization to access the website.
+Catherine comes into the website and clicks create register account in order to use the provided services. During creation, Catherine, will provide their age, weight, and height. For reference, there will be no authorization to access their account after creation.
 
 -   User starts by calling POST /RegisterUser/
 

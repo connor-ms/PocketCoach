@@ -12,6 +12,7 @@
 10. As a vegetarian, I want to be able to sort by specific food categories.
 11. As a person who's low in vitamins, I want to be able to see the amount of vitamins in my food.
 12. As a person with limited time, I want to be able to sort by amount of meals a day.
+13. As a person looking for a new program, I want to be able to seamlessly create and share my profile.
 
 # Exceptions
 
@@ -53,5 +54,6 @@
 
 12. The user tries to select too few meals a day, which will not meet their nutritional values.
     - The system will notify the user that it won't be poissible to meet nutrional standards with too low of a meal(s) a day.
-  
+13. User tries to create account without necessary information. 
+    - System will prompt him to enter missing entries in order to use our services
    
