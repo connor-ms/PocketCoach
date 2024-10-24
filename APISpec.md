@@ -7,7 +7,7 @@ The API calls are made in this sequence when creating and editing an account:
 1. `Register User`
 2. `Update Account`
 
-### 1.1. Register Account `/user/` (POST)
+### 1.1. Register Account `/user` (POST)
 
 Creates the account of the user with the following information.
 
@@ -29,7 +29,7 @@ Creates the account of the user with the following information.
 }
 ```
 
-### 1.2. Update Account - `/user/settings/{update_id}` (POST)
+### 1.2. Update Account - `/user` (PUT)
 
 Updates the users information.
 
@@ -62,7 +62,7 @@ The API calls are made in this sequence when the ingredients comes:
 4. `Retrieve Ingredient`
 5. `Retrieve Ingredients`
 
-### 2.1. Create Custom Ingredient - `/ingredient/create` (POST)
+### 2.1. Create Custom Ingredient - `/ingredient` (POST)
 
 Creates a new custom ingredient for that user.
 
@@ -77,7 +77,7 @@ Creates a new custom ingredient for that user.
 }
 ```
 
-### 2.2. Update Custom Ingredient - `/ingredient/{ingredient_id}/update` (POST)
+### 2.2. Update Custom Ingredient - `/ingredient/{ingredient_id}` (PUT)
 
 Updates a single ingredient.
 
@@ -92,7 +92,7 @@ Updates a single ingredient.
 }
 ```
 
-### 2.3. Deletes Custom Ingredient - `/ingredient/delete/{ingredient_id}` (POST)
+### 2.3. Deletes Custom Ingredient - `/ingredient/{ingredient_id}` (DELETE)
 
 Deletes ingredient.
 
@@ -120,7 +120,7 @@ Retrieves a single ingredient.
 }
 ```
 
-### 2.5. Retrieves all Ingredients - `/ingredient/` (GET)
+### 2.5. Retrieves all Ingredients - `/ingredient` (GET)
 
 Retrieves all ingredients.
 
@@ -141,7 +141,7 @@ Retrieves all ingredients.
 
 ## 3. Recipes
 
-### 3.1. Create Custom Recipe - `/recipes/create` (POST)
+### 3.1. Create Custom Recipe - `/recipe/create` (POST)
 
 Creates an empty recipe.
 
@@ -163,7 +163,7 @@ Creates an empty recipe.
 }
 ```
 
-### 3.2. Edit Recipe - `/recipes/{recipe_id}/edit` (PUT)
+### 3.2. Edit Recipe - `/recipe/{recipe_id}` (PUT)
 
 Edits an existing recipe.
 
@@ -176,7 +176,7 @@ Edits an existing recipe.
 }
 ```
 
-### 3.3. Delete Recipe - `/recipes/{recipe_id}/delete` (POST)
+### 3.3. Delete Recipe - `/recipe/{recipe_id}` (DELETE)
 
 Deletes an existing recipe. The recipe will only be deleted if `user_id` matches the recipe's `author_id`.
 
@@ -188,7 +188,7 @@ Deletes an existing recipe. The recipe will only be deleted if `user_id` matches
 }
 ```
 
-### 3.4. Add Ingredient(s) to Recipe - `/recipes/{recipe_id}/add` (POST)
+### 3.4. Add Ingredient(s) to Recipe - `/recipe/{recipe_id}` (POST)
 
 Adds one or more ingredients to a recipe.
 
@@ -204,7 +204,7 @@ Adds one or more ingredients to a recipe.
 ]
 ```
 
-### 3.5. Remove Ingredient from Recipe - `/recipes/{recipe_id}/remove` (POST)
+### 3.5. Remove Ingredient from Recipe - `/recipe/{recipe_id}` (DELETE)
 
 Removes one or more ingredients from a recipe.
 
@@ -219,7 +219,7 @@ Removes one or more ingredients from a recipe.
 ]
 ```
 
-### 3.6. Retrieve Recipe - `/recipes/{recipe_id}` (GET)
+### 3.6. Retrieve Recipe - `/recipe/{recipe_id}` (GET)
 
 Retrieves a recipe.
 
@@ -244,7 +244,7 @@ Retrieves a recipe.
 
 ### 4. Meal Plan
 
-### 4.1.Create Meal Plan - /meal-plans (POST)
+### 4.1.Create Meal Plan - /meal-plan (POST)
 
 **Request**:
 
@@ -268,7 +268,7 @@ Create a plan for a specific user
 }
 ```
 
-### 4.2. Add Recipe to Meal Plan - /meal-plans/{meal_plan_id}/recipes (POST)
+### 4.2. Add Recipe to Meal Plan - /meal-plan/{meal_plan_id}/recipe (POST)
 
 ```json
 {
@@ -287,7 +287,7 @@ Create a plan for a specific user
 }
 ```
 
-### 4.3. Edit Meal Plan - /meal-plans/{meal_plan_id} (PUT)
+### 4.3. Edit Meal Plan - /meal-plan/{meal_plan_id} (PUT)
 
 Edit the details of an existing meal plan (name, dates, calorie goal).
 
@@ -300,7 +300,7 @@ Edit the details of an existing meal plan (name, dates, calorie goal).
 }
 ```
 
-### 4.4. Delete Meal Plan - /meal-plans/{meal_plan_id} (DELETE)
+### 4.4. Delete Meal Plan - /meal-plan/{meal_plan_id} (DELETE)
 
 Delete an existing meal plan.
 
@@ -312,7 +312,7 @@ Delete an existing meal plan.
 }
 ```
 
-### 4.5. Get Meal Plan - /meal-plans/{meal_plan_id} (GET)
+### 4.5. Get Meal Plan - /meal-plan/{meal_plan_id} (GET)
 
 Retrieve details of a specific meal plan.
 
@@ -342,7 +342,7 @@ Retrieve details of a specific meal plan.
 }
 ```
 
-### 4.6. List All Meal Plans - /users/{user_id}/meal-plans (GET)
+### 4.6. List All Meal Plans - /user/{user_id}/meal-plan (GET)
 
 Retrieve all meal plans for a specific user.
 
@@ -361,7 +361,7 @@ Retrieve all meal plans for a specific user.
 
 ### 5. Calories
 
-### 5.1. Calorie Intake
+### 5.1. Calorie Intake - `calorie/intake` (POST)
 
 Return a summary of your meal plan calorie total.
 
@@ -373,7 +373,7 @@ Return a summary of your meal plan calorie total.
 )
 ```
 
-### 5.2 Calories Burned - `/inventory/plan` (POST)
+### 5.2 Calories Burned - `calorie/burn` (POST)
 
 Return a summary of the amount of calories burned which is your intake minus your exercise input
 
