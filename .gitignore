@@ -4,6 +4,7 @@ CompFoodCSV/
 .idea
 __pycache__
 node_modules/
-
+/data/usda_branded_500k.csv
+/data/usda_branded.csv
 /.env
 info.log
