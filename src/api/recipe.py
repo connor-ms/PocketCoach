@@ -26,7 +26,7 @@ def create_recipe(recipe: Recipe):
 
         return result.mappings().one()
 
-    raise HTTPException(status_code=400, detail="Failed to create user.")
+    raise HTTPException(status_code = 400, detail = "Failed to create user.")
 
 
 class Ingredient(BaseModel):
@@ -43,7 +43,7 @@ def add_ingredient(recipe_id: int, ingredient: Ingredient):
 
         return { "success": True }
 
-    raise HTTPException(status_code=400, detail="Failed to add ingredient.")
+    raise HTTPException(status_code = 400, detail = "Failed to add ingredient.")
 
 
 @router.get("/{recipe_id}")
