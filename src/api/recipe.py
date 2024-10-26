@@ -34,7 +34,7 @@ class Ingredient(BaseModel):
     quantity: int
 
 @router.post("/{recipe_id}")
-def create_recipe(recipe_id: int, ingredient: Ingredient):
+def add_ingredient(recipe_id: int, ingredient: Ingredient):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
             "INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity) VALUES (:recipe_id, :ingredient_id, :quantity)"),
