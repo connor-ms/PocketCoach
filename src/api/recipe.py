@@ -24,7 +24,7 @@ def create_recipe(recipe: Recipe):
             { "id": recipe.author_id, "name": recipe.name, "servings": recipe.servings }
         )
 
-        return result.mappings().one()  
+        return result.mappings().one()
 
     raise HTTPException(status_code=400, detail="Failed to create user.")
 
@@ -44,3 +44,25 @@ def add_ingredient(recipe_id: int, ingredient: Ingredient):
         return { "success": True }
 
     raise HTTPException(status_code=400, detail="Failed to add ingredient.")
+
+
+@router.get("/{recipe_id}")
+def create_recipe(recipe_id: int):
+    recipe_info = {}
+
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(
+            """
+            SELECT * FROM recipes
+            JOIN recipe_ingredients ON recipes.id = recipe_ingredients.recipe_id
+            LEFT JOIN usda_branded ON usda_branded.fdc_id = recipe_ingredients.ingredient_id
+            LEFT JOIN usda_non_branded ON usda_non_branded.fdc_id = recipe_ingredients.ingredient_id
+            LEFT JOIN menustat ON menustat.menustat_id = recipe_ingredients.ingredient_id
+            WHERE recipe_id = :recipe_id
+            """),
+            { "recipe_id": recipe_id }
+        )
+
+        recipe_info = result.mappings().one()
+
+    return recipe_info
