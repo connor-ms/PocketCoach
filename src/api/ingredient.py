@@ -36,9 +36,9 @@ def ingredient_delete(ingredient: Ingredient):
 
 @router.get("/{ingredient_id}")
 def get_ingredient(ingredient_id: int):
-    ingredient = {}
-
-    return ingredient
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("SELECT * FROM usda_branded WHERE fdc_id = :id"), {"id": ingredient_id})
+        return result.mappings().first()
 
 @router.get("/")
 def get_ingredients():
