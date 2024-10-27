@@ -47,7 +47,7 @@ def add_ingredient(recipe_id: int, ingredient: Ingredient):
 
 
 @router.get("/{recipe_id}")
-def create_recipe(recipe_id: int):
+def get_recipe(recipe_id: int):
     recipe_info = {}
 
     with db.engine.begin() as connection:
@@ -55,14 +55,26 @@ def create_recipe(recipe_id: int):
             """
             SELECT * FROM recipes
             JOIN recipe_ingredients ON recipes.id = recipe_ingredients.recipe_id
-            LEFT JOIN usda_branded ON usda_branded.fdc_id = recipe_ingredients.ingredient_id
-            LEFT JOIN usda_non_branded ON usda_non_branded.fdc_id = recipe_ingredients.ingredient_id
-            LEFT JOIN menustat ON menustat.menustat_id = recipe_ingredients.ingredient_id
             WHERE recipe_id = :recipe_id
             """),
             { "recipe_id": recipe_id }
         )
 
-        recipe_info = result.mappings().one()
+        recipe_info = result.mappings().all()
 
-    return recipe_info
+    ingredients = []
+
+    for row in recipe_info:
+        # TODO: use inventory.get_ingredient() once implemented
+        ingredients.append({
+            "ingredient_id": row["ingredient_id"],
+            "quantity": row["quantity"]
+        })
+
+    return {
+        "name": recipe_info[0]["name"],
+        "created_by": recipe_info[0]["author_id"],
+        "servings": recipe_info[0]["servings"],
+        "ingredients": ingredients,
+        # TODO: net_calories, net_protein, net_carbs
+    }
