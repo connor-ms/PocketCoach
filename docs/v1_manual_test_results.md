@@ -3,8 +3,8 @@
 John owns a restaurant, and wants somewhere to store the nutrition facts about one of his meals. John already has an account, so to save his recipe he:
 
 -   Sends a POST request to `/recipes/create`, where he supplies some general info about the recipe (such as name and how many people it serves). In response, he receives a recipe id of `1234`.
--   He then sends a POST request to `/recipes/1234/add` with a list of ingredients and their quantities.
--   When he wants to retrieve his recipe, he send a GET request to `/recipes/1234`, where the total macros are provided for him.
+-   He then sends a POST request to `/recipes/1234` with a list of ingredients and their quantities.
+-   When he wants to retrieve his recipe, he send a GET request to `/recipes/1234`, where the recipe info is provided for him.
 
 # Testing results
 
