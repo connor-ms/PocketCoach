@@ -8,10 +8,18 @@ router = APIRouter(
     tags=["Calories"],
 )
 
-# @router.post("/create")
-# def user_create():
-    
-    # with db.engine.begin() as connection:
-        
+class Calories(BaseModel):
+    calories_consumed: int = None
+    calories_burned: int = None
 
-    # return "OK"
+@router.post("/create")
+def add_calories_consumed(calories: Calories):
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text(
+            "INSERT INTO calories (calories_consumed) VALUES (:calories_consumed) RETURNING id"),
+            { "calories_consumed": calories.calories_consumed }
+        )
+    return "OK"
+
+
+
