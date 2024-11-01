@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
 from src import database as db
+from src.api.ingredient import get_ingredient
 
 
 router = APIRouter(
@@ -66,11 +67,10 @@ def get_recipe(recipe_id: int):
     ingredients = []
 
     for row in recipe_info:
-        # TODO: use inventory.get_ingredient() once implemented
-        ingredients.append({
-            "ingredient_id": row["ingredient_id"],
-            "quantity": row["quantity"]
-        })
+        ingredient_info = get_ingredient(row["ingredient_id"])
+
+        if ingredient_info:
+            ingredients.append(ingredient_info)
 
     return {
         "name": recipe_info[0]["name"],
