@@ -45,3 +45,4 @@ def get_account(account: Account):
         )
 
         return result.mappings().one() 
+    
