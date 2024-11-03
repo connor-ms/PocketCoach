@@ -1,13 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from src.api import auth
 import sqlalchemy
 from src import database as db
 
 router = APIRouter(
     prefix="/calories",
     tags=["Calories"],
-    dependencies=[Depends(auth.get_api_key)],
 )
 
 class Calories(BaseModel):
@@ -21,7 +19,20 @@ def add_calories_consumed(calories: Calories):
             "INSERT INTO calories (calories_consumed) VALUES (:calories_consumed) RETURNING id"),
             { "calories_consumed": calories.calories_consumed }
         )
-    return "OK"
 
+        return {"success": True}
+    raise HTTPException(status_code = 400, detail = "Failed to add calories consumed.")
 
+#need to add logic for calories burned against calories added.
+@router.post("/create")
+def add_calories_burned(calories: Calories):
+    with db.engine.begin() as connection:
+        connection.execeute(sqlalchemy.text(
+            "INSERT INTO calories (calories_burned) VALUES "),
+            { "calories_consumed": calories.calories_burned }
+        )
+
+        return {"success": True}
+    
+    raise HTTPException(status_code = 400, detail = "Failed to add calories burned.")
 

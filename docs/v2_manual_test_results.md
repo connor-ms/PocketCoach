@@ -1,4 +1,78 @@
+# Example workflow
 
+Catherine comes into the website and clicks create register account in order to use the provided services. During creation, Catherine, will provide their first name, last name, age, weight, and height. For reference, there will be no authorization to access their account after creation.
+
+-   User starts by calling POST /RegisterUser/
+
+-   User passes in their values into the entries.
+
+-   User finalizes their entries with POST /RegisterUser/Create/
+
+If the user enters a wrong unit or they happen to change in weight/height, they can go to settings and edit the entries.
+
+User will start by calling POST /UserSettings
+User will pass new values via /UserSettings/UserAttributes
+User will save their new settings via /UserSettings/UserAttributes/Save
+
+# Testing results
+
+1: Creating the account (request)
+
+    curl -X 'POST'
+    'http://127.0.0.1:3000/accounts/create'
+    -H 'accept: application/json'
+    -H 'Content-Type: application/json'
+    -d '{
+            "first_name": "Catherine",
+            "last_name": "Wilkinso",
+            "age": 40
+            "weight": 135
+            "height": 64
+        }'
+
+2: (response)
+
+    {
+        "id": 3
+    }
+
+3: Updating an Account (request)
+
+    curl -X 'POST' \
+    'http://127.0.0.1:3000/accounts/3' \
+    -H 'accept: application/json' \
+    -H 'Content-Type: application/json' \
+    -d '{
+            "first_name": "Catherine",
+            "last_name": "Wilkinson",
+            "age": 40
+            "weight": 135
+            "height": 64
+        }'
+
+4: (response)
+
+    {
+        "success": true
+    }
+
+5: Getting an Account (request)
+
+    curl -X 'GET' \
+    'http://127.0.0.1:3000/accounts/3' \
+    -H 'accept: application/json'
+
+6: (response)
+
+    {
+        "id": 3
+        "first_name": "Catherine",
+        "last_name": "Wilkinson",
+        "age": 40
+        "weight": 135
+        "height": 64
+    }
+    
 # Example workflow
 
 Bob is an avid gym-goer, and needs a way to make sure he's hitting his daily calorie and macro needs.
