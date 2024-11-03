@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-
+from src.api import auth
 import sqlalchemy
 from src import database as db
 from src.api.ingredient import get_ingredient
@@ -9,6 +9,7 @@ from src.api.ingredient import get_ingredient
 router = APIRouter(
     prefix="/recipes",
     tags=["Recipe"],
+    dependencies=[Depends(auth.get_api_key)],
 )
 
 
