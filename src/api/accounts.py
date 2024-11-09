@@ -20,19 +20,18 @@ def create_account(account: Account):
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
             "INSERT INTO accounts (first_name, last_name, age, weight, height) VALUES (:first_name, :last_name, :age, :weight, :height) RETURNING id"),
-            {"first_name": account.first_name, "last_name": account.last_name, "age": account.age, "servings": account.weight, "height": account.height }
-        )
+            {"first_name": account.first_name, "last_name": account.last_name, "age": account.age, "weight": account.weight, "height": account.height })
 
         return result.mappings().one() 
     
     raise HTTPException(status_code = 400, detail = "Failed to create user.")
-
-@router.post("/update")
-def update_account(account: Account):
+    
+@router.post("/update/{id}")
+def update_account(id: int, account: Account):
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
             "UPDATE accounts SET age = :age, weight = :weight, height = :height WHERE id = :id"),
-            {"id": account.id, "age": account.age, "weight": account.weight, "age": account.height}
+            {"id": id, "first_name": account.first_name, "last_name": account.last_name, "age": account.age, "weight": account.weight, "height": account.height}
         )
 
         return {"success": True}
@@ -49,16 +48,16 @@ def get_account(id: int):
             { "id": id}
         )
 
-        result.mappings().all()
-        
-        return{
-            "id": result.id,
-            "first_name": result.first_name,
-            "last_name": result.last_name,
-            "age": result.age,
-            "weight": result.weight,
-            "height": result.height
-        }
+        res = result.mappings().first()
+
+        if res:
+            return{
+                "first_name": res.first_name,
+                "last_name": res.last_name,
+                "age": res.age,
+                "weight": res.weight,
+                "height": res.height
+            }
 
     raise HTTPException(status_code = 400, detail = "Invalid Account.")
      
