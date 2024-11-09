@@ -1,10 +1,10 @@
 from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
+from src.api import accounts, calories, ingredient, meal_plan, recipe, user
 import json
 import logging
-
-from src.api import calories, ingredient, meal_plan, recipe, user
+import sys
 
 description = """
 Pocket Coach is the food tracking app that fits in your pocket!
@@ -21,6 +21,7 @@ app = FastAPI(
     },
 )
 
+app.include_router(accounts.router)
 app.include_router(calories.router)
 app.include_router(ingredient.router)
 app.include_router(meal_plan.router)

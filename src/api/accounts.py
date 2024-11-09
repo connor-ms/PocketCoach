@@ -20,13 +20,12 @@ def create_account(account: Account):
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
             "INSERT INTO accounts (first_name, last_name, age, weight, height) VALUES (:first_name, :last_name, :age, :weight, :height) RETURNING id"),
-            {"first_name": account.first_name, "last_name": account.last_name, "age": account.age, "weight": account.weight, "height": account.height }
-        )
+            {"first_name": account.first_name, "last_name": account.last_name, "age": account.age, "weight": account.weight, "height": account.height })
 
         return result.mappings().one() 
     
     raise HTTPException(status_code = 400, detail = "Failed to create user.")
-
+    
 @router.post("/update/{id}")
 def update_account(id: int, account: Account):
     with db.engine.begin() as connection:
