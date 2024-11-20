@@ -3,3 +3,40 @@ The get_daily_calories endpoint addresses concurrency issues such as phantom rea
 The get_recipe endpoint demonstrates the challenges of non-repeatable reads. This issue arises when retrieving a recipe and its associated ingredients while another transaction updates the same data. For example, a recipe’s details or ingredients might change between reads, resulting in inconsistencies in the retrieved information. 
 
 The create_meal_plan endpoint focuses on preventing conflicts using the SERIALIZABLE isolation level. When multiple users attempt to create meal plans simultaneously, overlapping or conflicting entries can occur without proper safeguards. By applying the SERIALIZABLE isolation level, transactions are processed as though they occur sequentially, eliminating risks of conflicts. 
+
+#2
+```mermaid
+sequenceDiagram
+    participant S1 as Session 1
+    participant DB as Database
+    participant S2 as Session 2
+
+    Note over S1, S2: Session 1 reads recipe and ingredients while Session 2 updates the recipe or ingredients.
+    S1->>DB: SELECT * FROM recipes JOIN recipe_ingredients WHERE recipe_id = {recipe_id}
+    DB-->>S1: Returns recipe and ingredient IDs
+    S2->>DB: UPDATE recipes SET name = {new_name} WHERE id = {recipe_id}
+    DB-->>S2: Confirm update
+    S1->>DB: Call get_ingredient for each ingredient_id
+    DB-->>S1: Returns updated ingredient data
+    Note over S1: Recipe details in Session 1 are inconsistent with initial data.
+
+```
+#3
+```mermaid
+sequenceDiagram
+    participant S1 as Session 1
+    participant DB as Database
+    participant S2 as Session 2
+
+    Note over S1, S2: Session 1 and Session 2 attempt to create meal plans simultaneously.
+    S1->>DB: INSERT INTO meal_plans (user_id, start_date, end_date, daily_calorie_goal)
+    S2->>DB: INSERT INTO meal_plans (user_id, start_date, end_date, daily_calorie_goal)
+    Note over DB: SERIALIZABLE isolation ensures one transaction is processed at a time.
+    DB-->>S1: Confirm INSERT and return meal_plan_id
+    DB-->>S2: Blocked until S1 completes
+    S2->>DB: Retry or rollback depending on constraints
+    DB-->>S2: Confirm INSERT or throw conflict error
+    Note over S1, S2: Conflicts are avoided by sequential transaction processing.
+
+
+```
