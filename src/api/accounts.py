@@ -62,10 +62,4 @@ def get_account(id: int):
 
     raise HTTPException(status_code = 400, detail = "Invalid Account.")
      
-
-
-    
-        
-    
-
     
