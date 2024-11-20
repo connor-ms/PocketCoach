@@ -1,3 +1,5 @@
+from datetime import date
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import sqlalchemy
@@ -9,30 +11,56 @@ router = APIRouter(
 )
 
 class Calories(BaseModel):
-    calories_consumed: int = None
-    calories_burned: int = None
+    account_id: int
+    calorie_change: int
 
-@router.post("/create")
-def add_calories_consumed(calories: Calories):
+@router.post("/log")
+def add_calorie_log(calories: Calories):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
-            "INSERT INTO calories (calories_consumed) VALUES (:calories_consumed) RETURNING id"),
-            { "calories_consumed": calories.calories_consumed }
-        )
-
-        return {"success": True}
-    raise HTTPException(status_code = 400, detail = "Failed to add calories consumed.")
-
-#need to add logic for calories burned against calories added.
-@router.post("/create")
-def add_calories_burned(calories: Calories):
-    with db.engine.begin() as connection:
-        connection.execeute(sqlalchemy.text(
-            "INSERT INTO calories (calories_burned) VALUES "),
-            { "calories_consumed": calories.calories_burned }
+            "INSERT INTO calories (account_id, calories) VALUES (:account_id ,:calories_change)"),
+            { "calories_change": calories.calorie_change, "account_id": calories.account_id }
         )
 
         return {"success": True}
     
     raise HTTPException(status_code = 400, detail = "Failed to add calories burned.")
 
+
+@router.get("/")
+def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, end_date: Optional[date] = None):
+    """
+        The calorie total for a specifc account can be retrieved in the following ways: \n
+        1. If neither `start_date` nor `end_date` are provided, the endpoint will return all calorie totals by date. \n
+        2. If both `start_date` and `end_date` are provided, the endpoint will return calorie totals by date within the given range. \n
+        3. If only `start_date` is provided, the endpoint will return calorie totals by date starting from the given date, inclusive. \n
+        4. If only `end_date` is provided, the endpoint will return calorie totals by date up to the given date, inclusive.\n
+    """
+    with db.engine.begin() as connection:
+        sql_query = """
+            SELECT
+                TO_CHAR(DATE_TRUNC('day', created_at), 'MM/DD/YYYY') AS day,
+                SUM(calories) AS total_calories
+            FROM calories
+            WHERE account_id = :account_id
+        """
+        
+        params = {"account_id": account_id}
+        
+        if start_date:
+            sql_query += " AND created_at >= :start_date"
+            params["start_date"] = start_date
+        
+        if end_date:
+            sql_query += " AND created_at <= :end_date"
+            params["end_date"] = end_date
+        
+        sql_query += """
+            GROUP BY day
+            ORDER BY day
+        """
+        
+        results = connection.execute(sqlalchemy.text(sql_query), params)
+        
+        return results.mappings().all()
+        
