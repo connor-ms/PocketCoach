@@ -21,6 +21,7 @@ class Recipe(BaseModel):
 @router.post("/create")
 def create_recipe(recipe: Recipe):
     with db.engine.begin() as connection:
+        connection.execution_options(isolation_level="REPEATABLE READ")
         result = connection.execute(sqlalchemy.text(
             "INSERT INTO recipes (author_id, name, servings) VALUES (:id, :name, :servings) RETURNING id"),
             { "id": recipe.author_id, "name": recipe.name, "servings": recipe.servings }
@@ -53,6 +54,7 @@ def get_recipe(recipe_id: int):
     recipe_info = {}
 
     with db.engine.begin() as connection:
+        connection.execution_options(isolation_level= "REPEATABLE READ")
         result = connection.execute(sqlalchemy.text(
             """
             SELECT * FROM recipes
