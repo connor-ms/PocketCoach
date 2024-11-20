@@ -25,6 +25,7 @@ class MealLog(BaseModel):
 @router.post("/meal-plans")
 def create_meal_plan(plan: MealPlanCreate):
     with db.engine.begin() as connection:
+        connection.execution_options(isolation_level="SERIALIZABLE")
         result = connection.execute(
             text("""
                 INSERT INTO meal_plans (user_id, start_date, end_date, daily_calorie_goal)
@@ -63,6 +64,7 @@ def log_meal(meal_plan_id: int, meal: MealLog):
 @router.get("/meal-plans/{meal_plan_id}/calories")
 def get_daily_calories(meal_plan_id: int, date: str):
     with db.engine.begin() as connection:
+        connection.execution_options(isolation_level="REPEATABLE READ")
         result = connection.execute(text("""
             SELECT COALESCE(
                 SUM(
