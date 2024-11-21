@@ -16,6 +16,9 @@ class Calories(BaseModel):
 
 @router.post("/log")
 def add_calorie_log(calories: Calories):
+    """
+    This endpoint excepts both positive and negative integers for both calories burned and gained.
+    """
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
             "INSERT INTO calories (account_id, calories) VALUES (:account_id ,:calories_change)"),
@@ -39,7 +42,7 @@ def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, e
     with db.engine.begin() as connection:
         sql_query = """
             SELECT
-                TO_CHAR(DATE_TRUNC('day', created_at), 'MM/DD/YYYY') AS day,
+                TO_CHAR(DATE_TRUNC('day', created_at), 'YYYY-MM-DD') AS day,
                 SUM(calories) AS total_calories
             FROM calories
             WHERE account_id = :account_id
