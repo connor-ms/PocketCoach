@@ -18,7 +18,7 @@ class Recipe(BaseModel):
     name: str = None
     servings: int = None
 
-@router.post("/create")
+@router.post("/")
 def create_recipe(recipe: Recipe):
     with db.engine.begin() as connection:
         connection.execution_options(isolation_level="REPEATABLE READ")
@@ -36,7 +36,7 @@ class Ingredient(BaseModel):
     ingredient_id: int
     quantity: int
 
-@router.post("/{recipe_id}")
+@router.post("/ingredient/{recipe_id}")
 def add_ingredient(recipe_id: int, ingredient: Ingredient):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
