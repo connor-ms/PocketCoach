@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from pydantic import BaseModel
 import sqlalchemy
 from src import database as db
@@ -16,16 +16,31 @@ class Calories(BaseModel):
 
 @router.post("/log")
 def add_calorie_log(calories: Calories):
-    with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(
-            "INSERT INTO calories (account_id, calories) VALUES (:account_id ,:calories_change)"),
-            { "calories_change": calories.calorie_change, "account_id": calories.account_id }
-        )
+    """
+    This endpoint accepts both positive and negative integers for both calories burned and gained. Limit for both is 4000 calories per call.
+    """
 
-        return {"success": True}
+    if calories.calorie_change > 4000:
+        raise HTTPException(status_code = 400, detail = "Calories entered is too high. Calorie intake must be below 4000 calories.")
+    elif calories.calorie_change < -4000:
+        raise HTTPException(status_code=400, detail="Calories entered is too low. Calories burned must be above -4000 calories.")
     
-    raise HTTPException(status_code = 400, detail = "Failed to add calories burned.")
+    try:
+        with db.engine.begin() as connection:
+            connection.execute(sqlalchemy.text(
+                "SELECT id FROM accounts WHERE id = :account_id"),
+                {"account_id": calories.account_id }
+            ).scalar_one
+        
+            connection.execute(sqlalchemy.text(
+                "INSERT INTO calories (account_id, calories) VALUES (:account_id ,:calories_change)"),
+                { "calories_change": calories.calorie_change, "account_id": calories.account_id }
+            )
 
+            return Response(status_code=200)
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid account id. Please try and enter another id.")
 
 @router.get("/")
 def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, end_date: Optional[date] = None):

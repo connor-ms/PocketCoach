@@ -1,7 +1,7 @@
 from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
-from src.api import accounts, calories, ingredient, meal_plan, recipe, user
+from src.api import accounts, calories, ingredient, meal_plan, recipe
 import json
 import logging
 import sys
@@ -26,7 +26,6 @@ app.include_router(calories.router)
 app.include_router(ingredient.router)
 app.include_router(meal_plan.router)
 app.include_router(recipe.router)
-app.include_router(user.router)
 
 @app.exception_handler(exceptions.RequestValidationError)
 @app.exception_handler(ValidationError)
