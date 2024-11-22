@@ -27,10 +27,13 @@ def add_calorie_log(calories: Calories):
     
     try:
         with db.engine.begin() as connection:
-            connection.execute(sqlalchemy.text(
+            account = connection.execute(sqlalchemy.text(
                 "SELECT id FROM accounts WHERE id = :account_id"),
                 {"account_id": calories.account_id }
-            ).scalar_one
+            ).mappings().one_or_none()
+            
+            if account is None:
+              raise Exception("Invalid account id. Please try and enter another id.")
         
             connection.execute(sqlalchemy.text(
                 "INSERT INTO calories (account_id, calories) VALUES (:account_id ,:calories_change)"),
@@ -40,7 +43,7 @@ def add_calorie_log(calories: Calories):
             return Response(status_code=200)
         
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Invalid account id. Please try and enter another id.")
+        raise HTTPException(status_code=400, detail=f"{e}")
 
 @router.get("/")
 def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, end_date: Optional[date] = None):
@@ -54,7 +57,7 @@ def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, e
     with db.engine.begin() as connection:
         sql_query = """
             SELECT
-                TO_CHAR(DATE_TRUNC('day', created_at), 'MM/DD/YYYY') AS day,
+                TO_CHAR(DATE_TRUNC('day', created_at), 'YYYY-MM-DD') AS day,
                 SUM(calories) AS total_calories
             FROM calories
             WHERE account_id = :account_id
