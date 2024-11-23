@@ -55,8 +55,6 @@ def update_account(id: int, account: Account):
             
 @router.get("/{id}")
 def get_account(id: int):
-    
-    
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
             "SELECT id, first_name, last_name, age, weight, height FROM accounts WHERE id = :id"),
@@ -66,7 +64,7 @@ def get_account(id: int):
         res = result.mappings().first()
 
         if res:
-            return{
+            return {
                 "first_name": res.first_name,
                 "last_name": res.last_name,
                 "age": res.age,
@@ -76,4 +74,17 @@ def get_account(id: int):
 
     raise HTTPException(status_code = 404, detail = "Invalid Account.")
      
-    
+@router.get("/{id}/recipes")
+def get_account(id: int):
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(
+            "SELECT recipes.id FROM recipes WHERE author_id = :id"),
+            { "id": id}
+        )
+
+        res = result.mappings().all()
+
+        if res:
+            return res
+
+    raise HTTPException(status_code = 404, detail = "Invalid Account.")

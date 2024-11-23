@@ -72,11 +72,12 @@ def delete_ingredient(ingredient_id):
 def get_ingredient(ingredient_id: int):
     try:
         with db.engine.begin() as connection:
+            print(ingredient_id)
             result = connection.execute(sqlalchemy.text("SELECT * FROM usda_branded WHERE fdc_id = :id"), {"id": ingredient_id})
             value = result.mappings().one_or_none()
         
             if value is None:
-                raise Exception("Incorrect ingredient id.")
+                raise Exception(f"Incorrect ingredient id ({ingredient_id})")
 
             return value
         

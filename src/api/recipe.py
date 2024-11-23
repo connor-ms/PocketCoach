@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
@@ -14,14 +14,29 @@ router = APIRouter(
 
 
 class Recipe(BaseModel):
-    author_id: int = None
+    author_id: float = None
     name: str = None
-    servings: int = None
+    servings: float = None
+
 
 @router.post("/")
 def create_recipe(recipe: Recipe):
     with db.engine.begin() as connection:
-        connection.execution_options(isolation_level="REPEATABLE READ")
+        if recipe.servings < 1 or recipe.servings > 100:
+            raise HTTPException(status_code=400, detail = "Invalid serving size. Must be between 1 and 100 (inclusive).")
+
+        if recipe.name == "":
+            raise HTTPException(status_code=400, detail = "Recipe name can't be blank.")
+        
+        account = connection.execute(sqlalchemy.text(
+            "SELECT id FROM accounts WHERE id = :account_id"),
+            { "account_id": recipe.author_id }
+        ).mappings().one_or_none()
+        
+        if account is None:
+            raise HTTPException(status_code=400, detail = "Invalid account id.")
+
+        #connection.execution_options(isolation_level="REPEATABLE READ")
         result = connection.execute(sqlalchemy.text(
             "INSERT INTO recipes (author_id, name, servings) VALUES (:id, :name, :servings) RETURNING id"),
             { "id": recipe.author_id, "name": recipe.name, "servings": recipe.servings }
@@ -29,34 +44,50 @@ def create_recipe(recipe: Recipe):
 
         return result.mappings().one()
 
-    raise HTTPException(status_code = 400, detail = "Failed to create user.")
+    raise HTTPException(status_code = 400, detail = "Failed to create recipe.")
 
 
 class Ingredient(BaseModel):
-    ingredient_id: int
-    quantity: int
+    ingredient_id: float
+    quantity: float
 
-@router.post("/ingredient/{recipe_id}")
-def add_ingredient(recipe_id: int, ingredient: Ingredient):
+
+@router.post("/{recipe_id}/ingredients")
+def add_ingredient(recipe_id: float, ingredient: Ingredient):
     with db.engine.begin() as connection:
+        ingredient = connection.execute(sqlalchemy.text(
+            "SELECT 1 FROM usda_branded WHERE fcd_id = :ingredient_id"),
+            { "ingredient_id": ingredient.ingredient_id }
+        ).mappings().one_or_none()
+
+        if len(ingredient) == 0:
+            raise HTTPException(status_code=400, detail="Invalid ingredient id given.")
+        
+        recipe = connection.execute(sqlalchemy.text(
+            "SELECT 1 FROM recipes WHERE id = :recipe_id"),
+            { "recipe_id": recipe_id }
+        ).mappings().one_or_none()
+
+        if len(recipe) == 0:
+            raise HTTPException(status_code=400, detail="Invalid recipe id given.")
+
         connection.execute(sqlalchemy.text(
             "INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity) VALUES (:recipe_id, :ingredient_id, :quantity)"),
             { "recipe_id": recipe_id, "ingredient_id": ingredient.ingredient_id, "quantity": ingredient.quantity }
         )
 
-        return { "success": True }
+        return Response(status_code=200)
 
     raise HTTPException(status_code = 400, detail = "Failed to add ingredient.")
 
 
 @router.get("/{recipe_id}")
-def get_recipe(recipe_id: int):
+def get_recipe(recipe_id: float):
     recipe_info = {}
 
     with db.engine.begin() as connection:
-        connection.execution_options(isolation_level= "REPEATABLE READ")
-        result = connection.execute(sqlalchemy.text(
-            """
+        #connection.execution_options(isolation_level= "REPEATABLE READ")
+        result = connection.execute(sqlalchemy.text("""
             SELECT * FROM recipes
             JOIN recipe_ingredients ON recipes.id = recipe_ingredients.recipe_id
             WHERE recipe_id = :recipe_id
@@ -66,18 +97,29 @@ def get_recipe(recipe_id: int):
 
         recipe_info = result.mappings().all()
 
+    if len(recipe_info) == 0:
+        raise HTTPException(status_code=400, detail="Invalid recipe id given.")
+
     ingredients = []
+    net_calories = 0
+    net_protein = 0
+    net_fat = 0
 
     for row in recipe_info:
         ingredient_info = get_ingredient(row["ingredient_id"])
 
         if ingredient_info:
+            net_calories += float(ingredient_info["calories_amount"])
+            net_protein += float(ingredient_info["protein_amount"])
+            net_fat += float(ingredient_info["fat_amount"])
             ingredients.append(ingredient_info)
 
     return {
         "name": recipe_info[0]["name"],
         "created_by": recipe_info[0]["author_id"],
         "servings": recipe_info[0]["servings"],
-        "ingredients": ingredients,
-        # TODO: net_calories, net_protein, net_carbs
+        "net_calories": net_calories,
+        "net_protein": net_protein,
+        "net_fat": net_fat,
+        "ingredients": ingredients
     }
