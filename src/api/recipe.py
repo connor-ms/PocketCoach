@@ -53,14 +53,14 @@ class Ingredient(BaseModel):
 
 
 @router.post("/{recipe_id}/ingredients")
-def add_ingredient(recipe_id: float, ingredient: Ingredient):
+def add_ingredient(recipe_id: int, ingredient: Ingredient):
     with db.engine.begin() as connection:
-        ingredient = connection.execute(sqlalchemy.text(
-            "SELECT 1 FROM usda_branded WHERE fcd_id = :ingredient_id"),
+        ingredients = connection.execute(sqlalchemy.text(
+            "SELECT 1 FROM usda_branded WHERE fdc_id = :ingredient_id"),
             { "ingredient_id": ingredient.ingredient_id }
         ).mappings().one_or_none()
 
-        if len(ingredient) == 0:
+        if not ingredients:
             raise HTTPException(status_code=400, detail="Invalid ingredient id given.")
         
         recipe = connection.execute(sqlalchemy.text(
@@ -68,7 +68,7 @@ def add_ingredient(recipe_id: float, ingredient: Ingredient):
             { "recipe_id": recipe_id }
         ).mappings().one_or_none()
 
-        if len(recipe) == 0:
+        if not recipe:
             raise HTTPException(status_code=400, detail="Invalid recipe id given.")
 
         connection.execute(sqlalchemy.text(
@@ -82,7 +82,7 @@ def add_ingredient(recipe_id: float, ingredient: Ingredient):
 
 
 @router.get("/{recipe_id}")
-def get_recipe(recipe_id: float):
+def get_recipe(recipe_id: int):
     recipe_info = {}
 
     with db.engine.begin() as connection:
@@ -109,9 +109,9 @@ def get_recipe(recipe_id: float):
         ingredient_info = get_ingredient(row["ingredient_id"])
 
         if ingredient_info:
-            net_calories += float(ingredient_info["calories_amount"])
-            net_protein += float(ingredient_info["protein_amount"])
-            net_fat += float(ingredient_info["fat_amount"])
+            net_calories += float(ingredient_info["calories_amount"]) if ingredient_info["calories_amount"] else 0
+            net_protein += float(ingredient_info["protein_amount"]) if ingredient_info["protein_amount"] else 0
+            net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
             ingredients.append(ingredient_info)
 
     return {
