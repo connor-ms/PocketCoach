@@ -39,7 +39,7 @@ def create_account(account: Account):
     
     raise HTTPException(status_code = 400, detail = "Failed to create user.")
     
-@router.put("/update/{id}")
+@router.put("/update/{account_id}")
 def update_account(id: int, account: Account):
     validate_info(account)
 
@@ -53,7 +53,7 @@ def update_account(id: int, account: Account):
     
     raise HTTPException(status_code = 400, detail = "Failed to update user.")
             
-@router.get("/{id}")
+@router.get("/{account_id}")
 def get_account(id: int):
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
@@ -74,7 +74,7 @@ def get_account(id: int):
 
     raise HTTPException(status_code = 404, detail = "Invalid Account.")
      
-@router.get("/{id}/recipes")
+@router.get("/{account_id}/recipes")
 def get_account(id: int):
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
@@ -88,3 +88,28 @@ def get_account(id: int):
             return res
 
     raise HTTPException(status_code = 404, detail = "Invalid Account.")
+
+@router.get("/{account_id}/meal-plans")
+def get_meal_plans(account_id: int):
+    try:
+        with db.engine.begin() as connection:
+            validate_user = connection.execute(sqlalchemy.text("""SELECT 1 FROM accounts WHERE id = :account_id"""), {"account_id": account_id}).one_or_none()
+
+            if validate_user is None:
+                raise Exception("Account not found.")
+
+            results = connection.execute(sqlalchemy.text("""SELECT id, name, description
+                                            FROM meal_plans
+                                            WHERE author_id = :account_id 
+                                            UNION 
+                                            SELECT meal_plan_id, name, description FROM shared_meal_plans 
+                                            JOIN meal_plans ON shared_meal_plans.meal_plan_id = meal_plans.id 
+                                            WHERE recipient_id = :account_id"""), {"account_id": account_id}).mappings().all()
+        
+            if results:
+                return results
+            
+            return []
+
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"{e}")
