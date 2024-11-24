@@ -20,6 +20,9 @@ class MealLog(BaseModel):
 
 @router.post("/")
 def create_meal_plan(plan: MealPlanCreate):
+    if not plan.name:
+        raise HTTPException(status_code=400, detail="Meal plan name can not be emtpy. Please enter a meal plan name.")
+
     try:
         with db.engine.begin() as connection:
             validate_account = connection.execute(text(
@@ -41,10 +44,9 @@ def create_meal_plan(plan: MealPlanCreate):
                     "name": plan.name,
                     "description": plan.description
                 }
-            )
+            ).mappings().one()
 
-            meal_plan_id = result.scalar()
-            return {"meal_plan_id": meal_plan_id}
+            return result
     
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"{e}")
@@ -75,11 +77,11 @@ def delete_meal_plan(meal_plan_id: int):
     
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=f"An error occurred while deleting the meal plan: {e}"
+            status_code=400, detail=f"An error occurred while deleting the meal plan: {e}"
         )
 
-@router.post("/{meal_plan_id}/recipes/{recipe_id}")
-def add_recipes(meal_plan_id: int,recipe_id: int):
+@router.post("/{meal_plan_id}/recipes")
+def add_recipes(meal_plan_id: int, recipe_id: int):
     try: 
         with db.engine.begin() as connection:
 
@@ -99,7 +101,7 @@ def add_recipes(meal_plan_id: int,recipe_id: int):
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Error adding recipe: {e}")
 
-@router.delete("/{meal_plan_id}/recipes/{recipe_id}")
+@router.delete("/{meal_plan_id}/recipes")
 def remove_recipes(meal_plan_id: int, recipe_id: int):
     try: 
         with db.engine.begin() as connection:
@@ -144,33 +146,8 @@ def share_meal_plan(meal_plan_id: int, author_id: int, recipient_id: int):
         
         except Exception as e:
             raise HTTPException(status_code=404, detail=f"Error sharing plan: {e}")
-        
-@router.get("/{account_id}")
-def get_meal_plans(account_id: int):
-    try:
-        with db.engine.begin() as connection:
-            validate_user = connection.execute(text("""SELECT 1 FROM accounts WHERE id = :account_id"""), {"account_id": account_id}).one_or_none()
 
-            if validate_user is None:
-                raise Exception("Account not found.")
-
-            results = connection.execute(text("""SELECT id, name, description
-                                            FROM meal_plans
-                                            WHERE author_id = :account_id 
-                                            UNION 
-                                            SELECT meal_plan_id, name, description FROM shared_meal_plans 
-                                            JOIN meal_plans ON shared_meal_plans.meal_plan_id = meal_plans.id 
-                                            WHERE recipient_id = :account_id"""), {"account_id": account_id}).mappings().all()
-        
-            if results:
-                return results
-            
-            return []
-
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"{e}")
-
-@router.get("/{meal_plan_id}/{account_id}")
+@router.get("/{meal_plan_id}")
 def get_meal_plan(meal_plan_id: int, account_id: int):
     try:
         with db.engine.begin() as connection:
