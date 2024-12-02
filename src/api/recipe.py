@@ -88,7 +88,7 @@ def get_recipe(recipe_id: int):
     with db.engine.begin() as connection:
         #connection.execution_options(isolation_level= "REPEATABLE READ")
         result = connection.execute(sqlalchemy.text("""
-            SELECT * FROM recipes
+            SELECT author_id, name, ingredient_id, servings, quantity AS ingredient_quantity FROM recipes
             JOIN recipe_ingredients ON recipes.id = recipe_ingredients.recipe_id
             WHERE recipe_id = :recipe_id
             """),
