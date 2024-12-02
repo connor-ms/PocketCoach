@@ -9,14 +9,13 @@ from datetime import datetime
 router = APIRouter(
     prefix="/ingredient",
     tags=["Ingredient"],
-    dependencies=[Depends(auth.get_api_key)],
 )
 
 class Ingredient(BaseModel):
     description: str
     serving_size_unit: str
     serving_size: int
-    calories: int
+    calorie_amount: int
 
 def validate_range(value: int, min: int, max: int, attribute: str):
     if value < min:
@@ -25,7 +24,7 @@ def validate_range(value: int, min: int, max: int, attribute: str):
         raise Exception(f"{attribute} is invalid, must be {max} or below.")
 
 def validate_info(ingredient: Ingredient) -> bool:
-    validate_range(ingredient.calories, 0, 2000, "Calories")
+    validate_range(ingredient.calorie_amount, 0, 2000, "Calories")
     validate_range(ingredient.serving_size, 1, 50, "Serving size")
 
 @router.post("/")
@@ -38,7 +37,7 @@ def create_ingredient(ingredient: Ingredient):
 
         with db.engine.begin() as connection:
             stmt = sqlalchemy.insert(db.ingredients).values(ingredient_data)
-            result = connection.execute(stmt.returning(db.ingredients.c.fdc_id))
+            result = connection.execute(stmt.returning(db.ingredients.c.id))
             print(f"execution time: {datetime.now() - start}")
             return result.mappings().one()
 
@@ -54,7 +53,7 @@ def update_ingredient(ingredient_id, ingredient: Ingredient):
         ingredient_data = ingredient.dict()
 
         with db.engine.begin() as connection:
-            stmt = sqlalchemy.update(db.ingredients).values(ingredient_data).where(db.ingredients.c.fdc_id == ingredient_id)
+            stmt = sqlalchemy.update(db.ingredients).values(ingredient_data).where(db.ingredients.c.id == ingredient_id)
             connection.execute(stmt)
             print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
@@ -67,7 +66,7 @@ def delete_ingredient(ingredient_id):
     start=datetime.now()
     try:
         with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text("""DELETE FROM usda_branded WHERE fdc_id = :id"""), {"id": ingredient_id})
+            result = connection.execute(sqlalchemy.text("""DELETE FROM usda_branded WHERE id = :id"""), {"id": ingredient_id})
             print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
         
@@ -80,7 +79,7 @@ def get_ingredient(ingredient_id: int):
     try:
         with db.engine.begin() as connection:
             print(ingredient_id)
-            result = connection.execute(sqlalchemy.text("SELECT * FROM usda_branded WHERE fdc_id = :id"), {"id": ingredient_id})
+            result = connection.execute(sqlalchemy.text("SELECT * FROM usda_branded WHERE id = :id"), {"id": ingredient_id})
             value = result.mappings().one_or_none()
         
             if value is None:
@@ -104,7 +103,7 @@ def get_ingredients_by_name(ingredient_name: str, page: int):
         ingredient_name = "%" + ingredient_name + "%"
 
         with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text("""SELECT fdc_id, description FROM usda_branded WHERE description ILIKE :name ORDER BY fdc_id ASC LIMIT 10 OFFSET :offset"""), {"name": ingredient_name, "offset": offset})
+            result = connection.execute(sqlalchemy.text("""SELECT id, description FROM usda_branded WHERE description ILIKE :name ORDER BY id ASC LIMIT 10 OFFSET :offset"""), {"name": ingredient_name, "offset": offset})
 
             print(f"execution time: {datetime.now() - start}")
             return result.mappings().all()

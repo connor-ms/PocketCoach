@@ -145,11 +145,12 @@ with engine.begin() as conn:
     ) tablespace pg_default;
     """))
 
-num_users = 10000
+num_users = 200000
 fake = Faker()
 calories_posts_sample_distribution = np.random.default_rng().negative_binomial(0.04, 0.01, num_users)
 total_posts = 0
-total_recipes = 0
+total_recipe_ingredients = 0
+total_meal_plan_recipes = 0
 
 def try_convert(value):
     if value == "":
@@ -198,7 +199,8 @@ with engine.begin() as conn:
 # create fake accounts and calorie logs
 with engine.begin() as conn:
     posts = []
-    recipes = []
+    recipe_ingredients = []
+    meal_plan_recipes = []
     for i in range(num_users):
         if (i % 10 == 0):
             print(i)
@@ -217,6 +219,10 @@ with engine.begin() as conn:
         recipe_id = conn.execute(sqlalchemy.text("""
         INSERT INTO recipes (author_id, name, servings, created_at) VALUES (:author_id, :name, :servings, :created_at) RETURNING id;"""), 
         {"author_id": id, "name": fake.text(15), "servings": 1, "created_at": fake.date_time_between(start_date="-4y", end_date="now")}).scalar_one()
+
+        meal_plan_id = conn.execute(sqlalchemy.text("""
+        INSERT INTO meal_plans (author_id, name, description, created_at) VALUES (:author_id, :name, :description, :created_at) RETURNING id;"""), 
+        {"author_id": id, "name": fake.text(15), "description": fake.text(15), "created_at": fake.date_time_between(start_date="-4y", end_date="now")}).scalar_one()
         num_posts = calories_posts_sample_distribution[i]
 
         for j in range(num_posts):
@@ -228,12 +234,19 @@ with engine.begin() as conn:
                 "created_at": fake_timestamp
             })
 
-            total_recipes += 1
-            recipes.append({
+            total_recipe_ingredients += 1
+            recipe_ingredients.append({
                "ingredient_id": np.random.randint(1,100001),
                "recipe_id": recipe_id,
                "quantity": np.random.randint(1,11)
             })
+
+            total_meal_plan_recipes += 1
+            meal_plan_recipes.append({
+               "meal_plan_id": meal_plan_id,
+               "recipe_id": recipe_id,
+            })
+            
         
     if posts:
         conn.execute(sqlalchemy.text("""
@@ -241,10 +254,15 @@ with engine.begin() as conn:
         VALUES (:account_id, :calories, :created_at);
         """), posts)
 
-    if recipes:
+    if recipe_ingredients:
        conn.execute(sqlalchemy.text("""
         INSERT INTO recipe_ingredients (ingredient_id, recipe_id, quantity) 
         VALUES (:ingredient_id, :recipe_id, :quantity);
-        """), recipes)
+        """), recipe_ingredients)
 
+    if meal_plan_recipes:
+       conn.execute(sqlalchemy.text("""
+        INSERT INTO plans_recipes (meal_plan_id, recipe_id) 
+        VALUES (:meal_plan_id, :recipe_id);
+        """), meal_plan_recipes)
     print("total posts: ", total_posts)

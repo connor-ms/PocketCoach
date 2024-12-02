@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
-from src.api import auth
 import sqlalchemy
 from src import database as db
 from src.api.ingredient import get_ingredient
@@ -10,7 +9,6 @@ from datetime import datetime
 router = APIRouter(
     prefix="/recipes",
     tags=["Recipe"],
-    dependencies=[Depends(auth.get_api_key)],
 )
 
 
@@ -59,7 +57,7 @@ def add_ingredient(recipe_id: int, ingredient: Ingredient):
     start=datetime.now()
     with db.engine.begin() as connection:
         ingredients = connection.execute(sqlalchemy.text(
-            "SELECT 1 FROM usda_branded WHERE fdc_id = :ingredient_id"),
+            "SELECT 1 FROM usda_branded WHERE id = :ingredient_id"),
             { "ingredient_id": ingredient.ingredient_id }
         ).mappings().one_or_none()
 
@@ -113,7 +111,7 @@ def get_recipe(recipe_id: int):
         ingredient_info = get_ingredient(row["ingredient_id"])
 
         if ingredient_info:
-            net_calories += float(ingredient_info["calories_amount"]) if ingredient_info["calories_amount"] else 0
+            net_calories += float(ingredient_info["calorie_amount"]) if ingredient_info["calorie_amount"] else 0
             net_protein += float(ingredient_info["protein_amount"]) if ingredient_info["protein_amount"] else 0
             net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
             ingredients.append(ingredient_info)

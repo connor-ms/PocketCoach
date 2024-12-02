@@ -127,8 +127,9 @@ def remove_recipes(meal_plan_id: int, recipe_id: int):
             if validate_meal_recipe is None:
                 raise Exception("Meal plan does not contain recipe.")
             
-            connection.execute(text("""DELETE FROM plans_recipes WHERE meal_plan_id = :meal_plan_id AND recipe_id = :recipe_id"""), {"meal_plan_id": meal_plan_id, "recipe_id": recipe_id})
+            analyze = connection.execute(text("""EXPLAIN ANALYZE DELETE FROM plans_recipes WHERE meal_plan_id = :meal_plan_id AND recipe_id = :recipe_id"""), {"meal_plan_id": meal_plan_id, "recipe_id": recipe_id})
             print(f"execution time: {datetime.now() - start}")
+            print(analyze.mappings().all())
             return Response(status_code=200)
         
     except Exception as e:
@@ -165,8 +166,8 @@ def get_meal_plan(meal_plan_id: int, account_id: int):
                                                     r.name AS recipe_name
                                                 FROM
                                                 meal_plans mp
-                                                JOIN plans_recipes pr ON mp.id = pr.meal_plan_id
-                                                JOIN recipes r ON pr.recipe_id = r.id
+                                                LEFT JOIN plans_recipes pr ON mp.id = pr.meal_plan_id
+                                                LEFT JOIN recipes r ON pr.recipe_id = r.id
                                                 WHERE
                                                     mp.author_id = :account_id AND mp.id = :meal_plan_id"""), 
                                             {"account_id": account_id, "meal_plan_id": meal_plan_id}).mappings().all()
@@ -190,9 +191,9 @@ def get_plan_stats(meal_plan_id: int):
                 raise Exception("Meal plan not found.")
 
             result = connection.execute(text("""
-                SELECT
+                EXPLAIN ANALYZE SELECT
                     r.name AS recipe_name,
-                    SUM(i.calories_amount) AS total_calories,
+                    SUM(i.calorie_amount) AS total_calories,
                     SUM(i.protein_amount) AS total_protein,
                     SUM(i.fat_amount) AS total_fat,
                     SUM(i.carb_amount) AS total_carbohydrates
@@ -201,7 +202,7 @@ def get_plan_stats(meal_plan_id: int):
                 JOIN plans_recipes pr ON mp.id = pr.meal_plan_id
                 JOIN recipes r ON pr.recipe_id = r.id
                 JOIN recipe_ingredients ri ON r.id = ri.recipe_id
-                JOIN usda_branded i ON ri.ingredient_id = i.fdc_id
+                JOIN usda_branded i ON ri.ingredient_id = i.id
                 WHERE mp.id = :meal_plan_id
                 GROUP BY
                     mp.id,
