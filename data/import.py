@@ -84,6 +84,4 @@ if __name__ == "__main__":
     key: str = os.environ.get("DB_KEY")
     connection = supabase.create_client(url, key)
 
-    import_file_to_db(connection, "data/menustat.csv", "menustat", BATCH_SIZE)
     import_file_to_db(connection, "data/usda_branded_500k.csv", "usda_branded", BATCH_SIZE)
-    import_file_to_db(connection, "data/usda_non_branded.csv", "usda_non_branded", BATCH_SIZE)

@@ -77,8 +77,11 @@ def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, e
             GROUP BY day
             ORDER BY day
         """
-        
+        explain = "EXPLAIN ANALYZE " + sql_query
         results = connection.execute(sqlalchemy.text(sql_query), params)
+
+        explain_result = connection.execute(sqlalchemy.text(explain), params).mappings().all()
+
+        print(explain_result)
         
         return results.mappings().all()
-        
