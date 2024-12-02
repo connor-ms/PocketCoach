@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
 from src import database as db
+from datetime import datetime
 
 
 router = APIRouter(
@@ -29,6 +30,7 @@ def validate_info(ingredient: Ingredient) -> bool:
 
 @router.post("/")
 def create_ingredient(ingredient: Ingredient):
+    start=datetime.now()
     try:
         validate_info(ingredient)
 
@@ -37,6 +39,7 @@ def create_ingredient(ingredient: Ingredient):
         with db.engine.begin() as connection:
             stmt = sqlalchemy.insert(db.ingredients).values(ingredient_data)
             result = connection.execute(stmt.returning(db.ingredients.c.fdc_id))
+            print(f"execution time: {datetime.now() - start}")
             return result.mappings().one()
 
     except Exception as e:
@@ -44,6 +47,7 @@ def create_ingredient(ingredient: Ingredient):
     
 @router.put("/{ingredient_id}")
 def update_ingredient(ingredient_id, ingredient: Ingredient):
+    start=datetime.now()
     try:
         validate_info(ingredient)
 
@@ -52,7 +56,7 @@ def update_ingredient(ingredient_id, ingredient: Ingredient):
         with db.engine.begin() as connection:
             stmt = sqlalchemy.update(db.ingredients).values(ingredient_data).where(db.ingredients.c.fdc_id == ingredient_id)
             connection.execute(stmt)
-            
+            print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
 
     except Exception as e:
@@ -60,9 +64,11 @@ def update_ingredient(ingredient_id, ingredient: Ingredient):
     
 @router.delete("{ingredient_id}")
 def delete_ingredient(ingredient_id):
+    start=datetime.now()
     try:
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text("""DELETE FROM usda_branded WHERE fdc_id = :id"""), {"id": ingredient_id})
+            print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
         
     except Exception as e:
@@ -70,6 +76,7 @@ def delete_ingredient(ingredient_id):
     
 @router.get("/id/{ingredient_id}")
 def get_ingredient(ingredient_id: int):
+    start=datetime.now()
     try:
         with db.engine.begin() as connection:
             print(ingredient_id)
@@ -79,6 +86,7 @@ def get_ingredient(ingredient_id: int):
             if value is None:
                 raise Exception(f"Incorrect ingredient id ({ingredient_id})")
 
+            print(f"execution time: {datetime.now() - start}")
             return value
         
     except Exception as e:
@@ -86,6 +94,7 @@ def get_ingredient(ingredient_id: int):
     
 @router.get("/name/{ingredient_name}")
 def get_ingredients_by_name(ingredient_name: str, page: int):
+    start=datetime.now()
     try:
         if page >= 0:
             offset = page * 10
@@ -97,6 +106,7 @@ def get_ingredients_by_name(ingredient_name: str, page: int):
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text("""SELECT fdc_id, description FROM usda_branded WHERE description ILIKE :name ORDER BY fdc_id ASC LIMIT 10 OFFSET :offset"""), {"name": ingredient_name, "offset": offset})
 
+            print(f"execution time: {datetime.now() - start}")
             return result.mappings().all()
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid Inputs: {e}")

@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 from src import database as db
 from sqlalchemy import text
+from datetime import datetime
+
 router = APIRouter(
     prefix="/meal-plan",
     tags=["Meal Plan"],
@@ -20,6 +22,7 @@ class MealLog(BaseModel):
 
 @router.post("/")
 def create_meal_plan(plan: MealPlanCreate):
+    start=datetime.now()
     if not plan.name:
         raise HTTPException(status_code=400, detail="Meal plan name can not be emtpy. Please enter a meal plan name.")
 
@@ -45,7 +48,7 @@ def create_meal_plan(plan: MealPlanCreate):
                     "description": plan.description
                 }
             ).mappings().one()
-
+            print(f"execution time: {datetime.now() - start}")
             return result
     
     except Exception as e:
@@ -53,6 +56,7 @@ def create_meal_plan(plan: MealPlanCreate):
 
 @router.delete("/{meal_plan_id}")
 def delete_meal_plan(meal_plan_id: int):
+    start=datetime.now()
     try:
         with db.engine.begin() as connection:
             validate = connection.execute(
@@ -72,7 +76,7 @@ def delete_meal_plan(meal_plan_id: int):
                 text("""DELETE FROM meal_plans WHERE id = :meal_plan_id"""),
                 {"meal_plan_id": meal_plan_id}
             )
-
+            print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
     
     except Exception as e:
@@ -82,6 +86,7 @@ def delete_meal_plan(meal_plan_id: int):
 
 @router.post("/{meal_plan_id}/recipes")
 def add_recipes(meal_plan_id: int, recipe_id: int):
+    start=datetime.now()
     try: 
         with db.engine.begin() as connection:
 
@@ -95,7 +100,7 @@ def add_recipes(meal_plan_id: int, recipe_id: int):
                 raise Exception("Recipe not found.")
             
             connection.execute(text("""INSERT INTO plans_recipes (meal_plan_id, recipe_id) VALUES (:meal_plan_id, :recipe_id)"""), {"meal_plan_id": meal_plan_id, "recipe_id": recipe_id})
-
+            print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
         
     except Exception as e:
@@ -103,6 +108,7 @@ def add_recipes(meal_plan_id: int, recipe_id: int):
 
 @router.delete("/{meal_plan_id}/recipes")
 def remove_recipes(meal_plan_id: int, recipe_id: int):
+    start=datetime.now()
     try: 
         with db.engine.begin() as connection:
 
@@ -122,7 +128,7 @@ def remove_recipes(meal_plan_id: int, recipe_id: int):
                 raise Exception("Meal plan does not contain recipe.")
             
             connection.execute(text("""DELETE FROM plans_recipes WHERE meal_plan_id = :meal_plan_id AND recipe_id = :recipe_id"""), {"meal_plan_id": meal_plan_id, "recipe_id": recipe_id})
-
+            print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
         
     except Exception as e:
@@ -130,6 +136,7 @@ def remove_recipes(meal_plan_id: int, recipe_id: int):
 
 @router.post("/{meal_plan_id}/share")
 def share_meal_plan(meal_plan_id: int, author_id: int, recipient_id: int):
+    start=datetime.now()
     with db.engine.begin() as connection:
         if author_id is recipient_id:
             raise HTTPException(status_code=400, detail="Author id and recipient id can not be the same.")
@@ -141,7 +148,7 @@ def share_meal_plan(meal_plan_id: int, author_id: int, recipient_id: int):
                     raise Exception("Meal plan and author id combination not found.")
             
             connection.execute(text("""INSERT INTO shared_meal_plans (meal_plan_id, recipient_id) VALUES (:meal_plan_id, :recipient_id)"""), {"meal_plan_id": meal_plan_id, "recipient_id": recipient_id})
-            
+            print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
         
         except Exception as e:
@@ -149,6 +156,7 @@ def share_meal_plan(meal_plan_id: int, author_id: int, recipient_id: int):
 
 @router.get("/{meal_plan_id}")
 def get_meal_plan(meal_plan_id: int, account_id: int):
+    start=datetime.now()
     try:
         with db.engine.begin() as connection:
             plan = connection.execute(text("""SELECT
@@ -164,6 +172,7 @@ def get_meal_plan(meal_plan_id: int, account_id: int):
                                             {"account_id": account_id, "meal_plan_id": meal_plan_id}).mappings().all()
         
             if plan:
+                print(f"execution time: {datetime.now() - start}")
                 return plan
             
             raise Exception("Meal plan not found that is owned or shared under account id.")
@@ -173,6 +182,7 @@ def get_meal_plan(meal_plan_id: int, account_id: int):
 
 @router.get("{meal_plan_id}/stats")
 def get_plan_stats(meal_plan_id: int):
+    start=datetime.now()
     try:
         with db.engine.begin() as connection:
             validate_meal_plan = connection.execute(text("""SELECT 1 FROM meal_plans WHERE id = :id"""), {"id": meal_plan_id}).one_or_none()
@@ -197,7 +207,7 @@ def get_plan_stats(meal_plan_id: int):
                     mp.id,
                     r.name;
             """), {"meal_plan_id": meal_plan_id}).mappings().all()
-            
+            print(f"execution time: {datetime.now() - start}")
             return result
 
     except Exception as e:

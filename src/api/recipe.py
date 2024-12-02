@@ -4,6 +4,7 @@ from src.api import auth
 import sqlalchemy
 from src import database as db
 from src.api.ingredient import get_ingredient
+from datetime import datetime
 
 
 router = APIRouter(
@@ -21,6 +22,7 @@ class Recipe(BaseModel):
 
 @router.post("/")
 def create_recipe(recipe: Recipe):
+    start=datetime.now()
     with db.engine.begin() as connection:
         if recipe.servings < 1 or recipe.servings > 100:
             raise HTTPException(status_code=400, detail = "Invalid serving size. Must be between 1 and 100 (inclusive).")
@@ -41,7 +43,7 @@ def create_recipe(recipe: Recipe):
             "INSERT INTO recipes (author_id, name, servings) VALUES (:id, :name, :servings) RETURNING id"),
             { "id": recipe.author_id, "name": recipe.name, "servings": recipe.servings }
         )
-
+        print(f"execution time: {datetime.now() - start}")
         return result.mappings().one()
 
     raise HTTPException(status_code = 400, detail = "Failed to create recipe.")
@@ -54,6 +56,7 @@ class Ingredient(BaseModel):
 
 @router.post("/{recipe_id}/ingredients")
 def add_ingredient(recipe_id: int, ingredient: Ingredient):
+    start=datetime.now()
     with db.engine.begin() as connection:
         ingredients = connection.execute(sqlalchemy.text(
             "SELECT 1 FROM usda_branded WHERE fdc_id = :ingredient_id"),
@@ -75,7 +78,7 @@ def add_ingredient(recipe_id: int, ingredient: Ingredient):
             "INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity) VALUES (:recipe_id, :ingredient_id, :quantity)"),
             { "recipe_id": recipe_id, "ingredient_id": ingredient.ingredient_id, "quantity": ingredient.quantity }
         )
-
+        print(f"execution time: {datetime.now() - start}")
         return Response(status_code=200)
 
     raise HTTPException(status_code = 400, detail = "Failed to add ingredient.")
@@ -83,6 +86,7 @@ def add_ingredient(recipe_id: int, ingredient: Ingredient):
 
 @router.get("/{recipe_id}")
 def get_recipe(recipe_id: int):
+    start=datetime.now()
     recipe_info = {}
 
     with db.engine.begin() as connection:
@@ -114,6 +118,7 @@ def get_recipe(recipe_id: int):
             net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
             ingredients.append(ingredient_info)
 
+    print(f"execution time: {datetime.now() - start}")
     return {
         "name": recipe_info[0]["name"],
         "created_by": recipe_info[0]["author_id"],

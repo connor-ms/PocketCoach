@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Response
 from pydantic import BaseModel
+from datetime import datetime
 import sqlalchemy
 from src import database as db
 
@@ -28,6 +29,7 @@ def validate_info(account: Account) -> bool:
 
 @router.post("/create")
 def create_account(account: Account):
+    start=datetime.now()
     validate_info(account)
     
     with db.engine.begin() as connection:
@@ -35,12 +37,14 @@ def create_account(account: Account):
             "INSERT INTO accounts (first_name, last_name, age, weight, height) VALUES (:first_name, :last_name, :age, :weight, :height) RETURNING id"),
             {"first_name": account.first_name, "last_name": account.last_name, "age": account.age, "weight": account.weight, "height": account.height })
 
+        print(f"execution time: {datetime.now() - start}")
         return result.mappings().one() 
     
     raise HTTPException(status_code = 400, detail = "Failed to create user.")
     
 @router.put("/update/{account_id}")
 def update_account(id: int, account: Account):
+    start=datetime.now()
     validate_info(account)
 
     with db.engine.begin() as connection:
@@ -49,12 +53,14 @@ def update_account(id: int, account: Account):
             {"id": id, "first_name": account.first_name, "last_name": account.last_name, "age": account.age, "weight": account.weight, "height": account.height}
         )
 
+        print(f"execution time: {datetime.now() - start}")
         return Response(status_code=200)
     
     raise HTTPException(status_code = 400, detail = "Failed to update user.")
             
 @router.get("/{account_id}")
 def get_account(id: int):
+    start=datetime.now()
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
             "SELECT id, first_name, last_name, age, weight, height FROM accounts WHERE id = :id"),
@@ -63,6 +69,7 @@ def get_account(id: int):
 
         res = result.mappings().first()
 
+        print(f"execution time: {datetime.now() - start}")
         if res:
             return {
                 "first_name": res.first_name,
@@ -76,6 +83,7 @@ def get_account(id: int):
      
 @router.get("/{account_id}/recipes")
 def get_account(id: int):
+    start=datetime.now()
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
             "SELECT recipes.id FROM recipes WHERE author_id = :id"),
@@ -85,12 +93,14 @@ def get_account(id: int):
         res = result.mappings().all()
 
         if res:
+            print(f"execution time: {datetime.now() - start}")
             return res
 
     raise HTTPException(status_code = 404, detail = "Invalid Account.")
 
 @router.get("/{account_id}/meal-plans")
 def get_meal_plans(account_id: int):
+    start=datetime.now()
     try:
         with db.engine.begin() as connection:
             validate_user = connection.execute(sqlalchemy.text("""SELECT 1 FROM accounts WHERE id = :account_id"""), {"account_id": account_id}).one_or_none()
@@ -107,6 +117,7 @@ def get_meal_plans(account_id: int):
                                             WHERE recipient_id = :account_id"""), {"account_id": account_id}).mappings().all()
         
             if results:
+                print(f"execution time: {datetime.now() - start}")
                 return results
             
             return []

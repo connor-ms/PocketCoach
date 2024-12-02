@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Response
 from pydantic import BaseModel
 import sqlalchemy
+from datetime import datetime
 from src import database as db
 
 router = APIRouter(
@@ -19,7 +20,7 @@ def add_calorie_log(calories: Calories):
     """
     This endpoint accepts both positive and negative integers for both calories burned and gained. Limit for both is 4000 calories per call.
     """
-
+    start=datetime.now()
     if calories.calorie_change > 4000:
         raise HTTPException(status_code = 400, detail = "Calories entered is too high. Calorie intake must be below 4000 calories.")
     elif calories.calorie_change < -4000:
@@ -40,6 +41,7 @@ def add_calorie_log(calories: Calories):
                 { "calories_change": calories.calorie_change, "account_id": calories.account_id }
             )
 
+            print(f"execution time: {datetime.now() - start}")
             return Response(status_code=200)
         
     except Exception as e:
@@ -54,6 +56,7 @@ def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, e
         3. If only `start_date` is provided, the endpoint will return calorie totals by date starting from the given date, inclusive. \n
         4. If only `end_date` is provided, the endpoint will return calorie totals by date up to the given date, inclusive.\n
     """
+    start=datetime.now()
     with db.engine.begin() as connection:
         sql_query = """
             SELECT
@@ -83,5 +86,5 @@ def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, e
         explain_result = connection.execute(sqlalchemy.text(explain), params).mappings().all()
 
         print(explain_result)
-        
+        print(f"execution time: {datetime.now() - start}")
         return results.mappings().all()
