@@ -73,7 +73,7 @@ def get_ingredient(ingredient_id: int):
     try:
         with db.engine.begin() as connection:
             print(ingredient_id)
-            result = connection.execute(sqlalchemy.text("SELECT * FROM usda_branded WHERE fdc_id = :id"), {"id": ingredient_id})
+            result = connection.execute(sqlalchemy.text("SELECT id, description, calories_amount, calorie_unit, fat_amount, fat_unit, protein_amount, protein_unit FROM usda_branded WHERE fdc_id = :id"), {"id": ingredient_id})
             value = result.mappings().one_or_none()
         
             if value is None:
