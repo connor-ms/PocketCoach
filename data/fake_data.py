@@ -1,3 +1,4 @@
+import csv
 from datetime import timedelta, timezone
 import random
 import sqlalchemy
@@ -149,9 +150,56 @@ fake = Faker()
 calories_posts_sample_distribution = np.random.default_rng().negative_binomial(0.04, 0.01, num_users)
 total_posts = 0
 
-with engine.begin() as conn:
+def try_convert(value):
+    if value == "":
+        return None
     
+    try:
+        int_value = int(value)
+        return int_value
+    except ValueError:
+        try:
+            return float(value)
+        except ValueError:
+            return value
 
+# import real food data
+with engine.begin() as conn:
+    to_insert = []
+    file_name = "data/usda_branded_500k.csv"
+    BATCH_SIZE = 7000
+
+    try:
+        with open(file_name, 'r', newline='', encoding='utf-8') as csvfile:
+            csvreader = csv.DictReader(csvfile)
+
+            for line_number, row in enumerate(csvreader, start=2):
+                try:
+                    converted_row = { key: try_convert(value) for key, value in row.items() }
+                    del converted_row["fdc_id"]
+                    print(converted_row)
+                    # id = conn.execute(sqlalchemy.text("""
+                    # INSERT INTO usda_branded (*) VALUES (:description, :brand_name, :brand_owner, :ingredients, :serving_size, :serving_size_unit, :food_category, :update_year, :sugars_total_including_nlea_amount, :sugars_total_including_nlea_unit, :fatty_acids_total_saturated_amount, :fatty_acids_total_saturated_unit, :cholesterol_amount, :cholesterol_unit, :vitamin_c_total_ascorbic_acid_amount, :vitamin_c_total_ascorbic_acid_unit, :vitamin_d_d2_d3_international_units_amount, :vitamin_d_d2_d3_international_units_unit, :vitamin_a_iu_amount, :vitamin_a_iu_unit, :sodium_na_amount, :sodium_na_unit, :potassium_amount, :potassium_unit, :iron_fe_amount, :iron_fe_unit, :calcium_ca_amount, :calcium_ca_unit, :fiber_amount, :fiber_unit, :energy_amount, :energy_unit, :carb_amount, :carb_unit, :fat_amount, :fat_unit, :protein_amount, :protein_unit) RETURNING id;
+                    # """), converted_row).scalar_one()
+                    # to_insert.append(converted_row)
+
+                    # if len(to_insert) >= BATCH_SIZE:
+                    #     try:
+                            
+                    #         print(f"Inserted {len(to_insert)} rows.")
+                    #         to_insert.clear()
+                    #     except Exception as e:
+                    #         print(f"Error inserting data: {e}")
+
+                except Exception as e:
+                    print(f"Error on line {line_number}")
+                    print(f"Error details: {e}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# create fake accounts and calorie logs
+with engine.begin() as conn:
     posts = []
     for i in range(num_users):
         if (i % 10 == 0):
