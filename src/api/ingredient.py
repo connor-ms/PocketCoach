@@ -8,7 +8,6 @@ from src import database as db
 router = APIRouter(
     prefix="/ingredient",
     tags=["Ingredient"],
-    dependencies=[Depends(auth.get_api_key)],
 )
 
 class Ingredient(BaseModel):

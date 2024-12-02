@@ -9,7 +9,6 @@ from src.api.ingredient import get_ingredient
 router = APIRouter(
     prefix="/recipes",
     tags=["Recipe"],
-    dependencies=[Depends(auth.get_api_key)],
 )
 
 
