@@ -114,9 +114,9 @@ def get_recipe(recipe_id: int):
             print(ingredient_info)
 
             if ingredient_info:
-                net_calories += float(ingredient_info["calorie_amount"]) if ingredient_info["calorie_amount"] else 0
-                net_protein += float(ingredient_info["protein_amount"]) if ingredient_info["protein_amount"] else 0
-                net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
+                net_calories += float(ingredient_info["calories_amount"]) if ingredient_info["calories_amount"] else 0
+                # net_protein += float(ingredient_info["protein_amount"]) if ingredient_info["protein_amount"] else 0
+                # net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
                 ingredients.append(ingredient_info)
 
         return {
@@ -124,10 +124,11 @@ def get_recipe(recipe_id: int):
             "created_by": recipe_info[0]["author_id"],
             "servings": recipe_info[0]["servings"],
             "net_calories": net_calories,
-            "net_protein": net_protein,
-            "net_fat": net_fat,
             "ingredients": ingredients
         }
+    
+    # "net_protein": net_protein,
+    # "net_fat": net_fat,
     
     except Exception as e:
         raise HTTPException(status_code = 404, detail = f"Error: {e}")
