@@ -85,7 +85,12 @@ def get_recipe(recipe_id: int):
     recipe_info = {}
 
     with db.engine.begin() as connection:
-        #connection.execution_options(isolation_level= "REPEATABLE READ")
+        
+        validate_recipe = connection.execute(sqlalchemy.text("""SELECT 1 FROM recipes WHERE id = :id"""), {"id": recipe_id}).one_or_none()
+
+        if validate_recipe is None:
+            raise Exception("Recipe not found.")
+
         result = connection.execute(sqlalchemy.text("""
             SELECT author_id, name, ingredient_id, servings, quantity AS ingredient_quantity FROM recipes
             JOIN recipe_ingredients ON recipes.id = recipe_ingredients.recipe_id
@@ -96,9 +101,6 @@ def get_recipe(recipe_id: int):
 
         recipe_info = result.mappings().all()
 
-    if len(recipe_info) == 0:
-        raise HTTPException(status_code=400, detail="Invalid recipe id given.")
-
     ingredients = []
     net_calories = 0
     net_protein = 0
@@ -106,6 +108,9 @@ def get_recipe(recipe_id: int):
 
     for row in recipe_info:
         ingredient_info = get_ingredient(row["ingredient_id"])
+
+        if len(ingredient_info) == 0:
+            raise Exception("Recipe contains no ingredients.")
 
         if ingredient_info:
             net_calories += float(ingredient_info["calories_amount"]) if ingredient_info["calories_amount"] else 0
