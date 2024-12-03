@@ -72,7 +72,7 @@ def get_ingredient(ingredient_id: int):
     try:
         with db.engine.begin() as connection:
             print(ingredient_id)
-            result = connection.execute(sqlalchemy.text("SELECT description, calories_amount, calorie_unit, fat_amount, fat_unit, protein_amount, protein_unit FROM usda_branded WHERE fdc_id = :id"), {"id": ingredient_id})
+            result = connection.execute(sqlalchemy.text("SELECT description, calories_amount, serving_size, serving_size_unit FROM usda_branded WHERE fdc_id = :id"), {"id": ingredient_id})
             value = result.mappings().one_or_none()
         
             if value is None:
@@ -94,7 +94,7 @@ def get_ingredients_by_name(ingredient_name: str, page: int):
         ingredient_name = "%" + ingredient_name + "%"
 
         with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text("""SELECT fdc_id, description FROM usda_branded WHERE description ILIKE :name ORDER BY fdc_id ASC LIMIT 10 OFFSET :offset"""), {"name": ingredient_name, "offset": offset})
+            result = connection.execute(sqlalchemy.text("""SELECT fdc_id, description, calories_amount, serving_size, serving_size_unit FROM usda_branded WHERE description ILIKE :name ORDER BY fdc_id ASC LIMIT 10 OFFSET :offset"""), {"name": ingredient_name, "offset": offset})
 
             return result.mappings().all()
     except Exception as e:
