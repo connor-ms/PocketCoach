@@ -45,7 +45,7 @@ def update_account(id: int, account: Account):
 
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
-            "UPDATE accounts SET age = :age, weight = :weight, height = :height WHERE id = :id"),
+            "UPDATE accounts SET first_name = :first_name, last_name = :last_name, age = :age, weight = :weight, height = :height WHERE id = :id"),
             {"id": id, "first_name": account.first_name, "last_name": account.last_name, "age": account.age, "weight": account.weight, "height": account.height}
         )
 
@@ -76,18 +76,26 @@ def get_account(id: int):
      
 @router.get("/{account_id}/recipes")
 def get_account(id: int):
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(
-            "SELECT recipes.id FROM recipes WHERE author_id = :id"),
-            { "id": id}
-        )
+    try:
+        with db.engine.begin() as connection:
+            validate_user = connection.execute(sqlalchemy.text("""SELECT 1 FROM accounts WHERE id = :account_id"""), {"account_id": id}).one_or_none()
 
-        res = result.mappings().all()
+            if validate_user is None:
+                raise Exception("Account not found.")
 
-        if res:
-            return res
+            result = connection.execute(sqlalchemy.text(
+                "SELECT recipes.id, recipes.name FROM recipes WHERE author_id = :id"),
+                { "id": id}
+            )
 
-    raise HTTPException(status_code = 404, detail = "Invalid Account.")
+            res = result.mappings().all()
+
+            if res:
+                return res
+            else:
+                raise Exception("Account is not the author of any recipes.")
+    except Exception as e:
+        return HTTPException(status_code = 404, detail = f"Error: {e}")
 
 @router.get("/{account_id}/meal-plans")
 def get_meal_plans(account_id: int):
@@ -108,8 +116,8 @@ def get_meal_plans(account_id: int):
         
             if results:
                 return results
-            
-            return []
+            else:
+                raise Exception("Account is not the author of any meal plans.")
 
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"{e}")

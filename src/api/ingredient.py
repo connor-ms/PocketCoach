@@ -14,7 +14,7 @@ class Ingredient(BaseModel):
     description: str
     serving_size_unit: str
     serving_size: int
-    calories: int
+    calories_amount: int
 
 def validate_range(value: int, min: int, max: int, attribute: str):
     if value < min:
@@ -23,7 +23,7 @@ def validate_range(value: int, min: int, max: int, attribute: str):
         raise Exception(f"{attribute} is invalid, must be {max} or below.")
 
 def validate_info(ingredient: Ingredient) -> bool:
-    validate_range(ingredient.calories, 0, 2000, "Calories")
+    validate_range(ingredient.calories_amount, 0, 2000, "Calories")
     validate_range(ingredient.serving_size, 1, 50, "Serving size")
 
 @router.post("/")
