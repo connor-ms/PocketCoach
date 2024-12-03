@@ -79,6 +79,34 @@ def add_ingredient(recipe_id: int, ingredient: Ingredient):
 
     raise HTTPException(status_code = 400, detail = "Failed to add ingredient.")
 
+@router.delete("/{recipe_id}/ingredients")
+def remove_ingredient(recipe_id: int, ingredient_id: int):
+    with db.engine.begin() as connection:
+        ingredients = connection.execute(sqlalchemy.text(
+            "SELECT 1 FROM usda_branded WHERE fdc_id = :ingredient_id"),
+            { "ingredient_id": ingredient_id }
+        ).mappings().one_or_none()
+
+        if not ingredients:
+            raise HTTPException(status_code=400, detail="Invalid ingredient id given.")
+        
+        recipe = connection.execute(sqlalchemy.text(
+            "SELECT 1 FROM recipes WHERE id = :recipe_id"),
+            { "recipe_id": recipe_id }
+        ).mappings().one_or_none()
+
+        if not recipe:
+            raise HTTPException(status_code=400, detail="Invalid recipe id given.")
+
+        connection.execute(sqlalchemy.text(
+            "DELETE FROM recipe_ingredients WHERE recipe_id = :recipe_id AND ingredient_id = :ingredient_id"),
+            { "recipe_id": recipe_id, "ingredient_id": ingredient_id}
+        )
+
+        return Response(status_code=200)
+
+    raise HTTPException(status_code = 400, detail = "Failed to remove ingredient.")
+
 
 @router.get("/{recipe_id}")
 def get_recipe(recipe_id: int):
