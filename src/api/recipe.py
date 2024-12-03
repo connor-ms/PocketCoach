@@ -83,47 +83,50 @@ def add_ingredient(recipe_id: int, ingredient: Ingredient):
 @router.get("/{recipe_id}")
 def get_recipe(recipe_id: int):
     recipe_info = {}
+    try:
+        with db.engine.begin() as connection:
+            
+            validate_recipe = connection.execute(sqlalchemy.text("""SELECT 1 FROM recipes WHERE id = :id"""), {"id": recipe_id}).one_or_none()
 
-    with db.engine.begin() as connection:
-        
-        validate_recipe = connection.execute(sqlalchemy.text("""SELECT 1 FROM recipes WHERE id = :id"""), {"id": recipe_id}).one_or_none()
+            if validate_recipe is None:
+                raise Exception("Recipe not found.")
 
-        if validate_recipe is None:
-            raise Exception("Recipe not found.")
+            result = connection.execute(sqlalchemy.text("""
+                SELECT author_id, name, ingredient_id, servings, quantity AS ingredient_quantity FROM recipes
+                JOIN recipe_ingredients ON recipes.id = recipe_ingredients.recipe_id
+                WHERE recipe_id = :recipe_id
+                """),
+                { "recipe_id": recipe_id }
+            )
 
-        result = connection.execute(sqlalchemy.text("""
-            SELECT author_id, name, ingredient_id, servings, quantity AS ingredient_quantity FROM recipes
-            JOIN recipe_ingredients ON recipes.id = recipe_ingredients.recipe_id
-            WHERE recipe_id = :recipe_id
-            """),
-            { "recipe_id": recipe_id }
-        )
+            recipe_info = result.mappings().all()
 
-        recipe_info = result.mappings().all()
+        ingredients = []
+        net_calories = 0
+        net_protein = 0
+        net_fat = 0
 
-    ingredients = []
-    net_calories = 0
-    net_protein = 0
-    net_fat = 0
+        for row in recipe_info:
+            ingredient_info = get_ingredient(row["ingredient_id"])
+                
 
-    for row in recipe_info:
-        ingredient_info = get_ingredient(row["ingredient_id"])
+            if ingredient_info:
+                net_calories += float(ingredient_info["calories_amount"]) if ingredient_info["calories_amount"] else 0
+                net_protein += float(ingredient_info["protein_amount"]) if ingredient_info["protein_amount"] else 0
+                net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
+                ingredients.append(ingredient_info)
+            else:
+                raise Exception("Recipe contains no ingredients.")
 
-        if len(ingredient_info) == 0:
-            raise Exception("Recipe contains no ingredients.")
-
-        if ingredient_info:
-            net_calories += float(ingredient_info["calories_amount"]) if ingredient_info["calories_amount"] else 0
-            net_protein += float(ingredient_info["protein_amount"]) if ingredient_info["protein_amount"] else 0
-            net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
-            ingredients.append(ingredient_info)
-
-    return {
-        "name": recipe_info[0]["name"],
-        "created_by": recipe_info[0]["author_id"],
-        "servings": recipe_info[0]["servings"],
-        "net_calories": net_calories,
-        "net_protein": net_protein,
-        "net_fat": net_fat,
-        "ingredients": ingredients
-    }
+        return {
+            "name": recipe_info[0]["name"],
+            "created_by": recipe_info[0]["author_id"],
+            "servings": recipe_info[0]["servings"],
+            "net_calories": net_calories,
+            "net_protein": net_protein,
+            "net_fat": net_fat,
+            "ingredients": ingredients
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code = 404, detail = f"Error: {e}")
