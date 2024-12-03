@@ -157,8 +157,8 @@ def get_meal_plan(meal_plan_id: int, account_id: int):
                                                     r.name AS recipe_name
                                                 FROM
                                                 meal_plans mp
-                                                JOIN plans_recipes pr ON mp.id = pr.meal_plan_id
-                                                JOIN recipes r ON pr.recipe_id = r.id
+                                                LEFT JOIN plans_recipes pr ON mp.id = pr.meal_plan_id
+                                                LEFT JOIN recipes r ON pr.recipe_id = r.id
                                                 WHERE
                                                     mp.author_id = :account_id AND mp.id = :meal_plan_id"""), 
                                             {"account_id": account_id, "meal_plan_id": meal_plan_id}).mappings().all()
