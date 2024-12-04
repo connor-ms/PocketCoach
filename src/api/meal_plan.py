@@ -182,10 +182,7 @@ def get_plan_stats(meal_plan_id: int):
             result = connection.execute(text("""
                 SELECT
                     r.name AS recipe_name,
-                    SUM(i.calories_amount) AS total_calories,
-                    SUM(i.protein_amount) AS total_protein,
-                    SUM(i.fat_amount) AS total_fat,
-                    SUM(i.carb_amount) AS total_carbohydrates
+                    SUM(i.calories_amount) AS total_calories
                 FROM
                 meal_plans mp
                 JOIN plans_recipes pr ON mp.id = pr.meal_plan_id

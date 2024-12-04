@@ -145,12 +145,28 @@ def get_recipe(recipe_id: int):
             
             ingredient_info = get_ingredient(row["ingredient_id"])
 
-            print(ingredient_info)
+            print(row)
 
             if ingredient_info:
-                net_calories += float(ingredient_info["calories_amount"]) if ingredient_info["calories_amount"] else 0
-                # net_protein += float(ingredient_info["protein_amount"]) if ingredient_info["protein_amount"] else 0
-                # net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
+                ingredient_info = dict(ingredient_info)
+                # calories = float(ingredient_info["calories_amount"]) if ingredient_info["calories_amount"] else 0
+                # net_calories += (calories * float(row["ingredient_quantity"]))
+                # ingredient_info["quantity"] = float(row["ingredient_quantity"])
+                # # net_protein += float(ingredient_info["protein_amount"]) if ingredient_info["protein_amount"] else 0
+                # # net_fat += float(ingredient_info["fat_amount"]) if ingredient_info["fat_amount"] else 0
+                # ingredients.append(ingredient_info)
+                
+                calories = float(ingredient_info.get("calories_amount", 0))
+                ingredient_quantity = float(row["ingredient_quantity"] or 0)
+
+                # Update net values
+                net_calories += calories * ingredient_quantity
+                ingredient_info["quantity"] = ingredient_quantity
+
+                # Optionally include protein and fat calculations
+                # net_protein += float(ingredient_info.get("protein_amount", 0))
+                # net_fat += float(ingredient_info.get("fat_amount", 0))
+
                 ingredients.append(ingredient_info)
 
         return {
@@ -160,9 +176,6 @@ def get_recipe(recipe_id: int):
             "net_calories": net_calories,
             "ingredients": ingredients
         }
-    
-    # "net_protein": net_protein,
-    # "net_fat": net_fat,
     
     except Exception as e:
         raise HTTPException(status_code = 404, detail = f"Error: {e}")

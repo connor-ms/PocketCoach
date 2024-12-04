@@ -51,8 +51,8 @@ def retrieve_calorie_total(account_id: int, start_date: Optional[date] = None, e
         The calorie total for a specifc account can be retrieved in the following ways: \n
         1. If neither `start_date` nor `end_date` are provided, the endpoint will return all calorie totals by date. \n
         2. If both `start_date` and `end_date` are provided, the endpoint will return calorie totals by date within the given range. \n
-        3. If only `start_date` is provided, the endpoint will return calorie totals by date starting from the given date, inclusive. \n
-        4. If only `end_date` is provided, the endpoint will return calorie totals by date up to the given date, inclusive.\n
+        3. If only `start_date` is provided, the endpoint will return calorie totals by date starting from the given date. \n
+        4. If only `end_date` is provided, the endpoint will return calorie totals by date up to the given date.\n
     """
     with db.engine.begin() as connection:
         sql_query = """
