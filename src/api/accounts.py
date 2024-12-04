@@ -28,6 +28,12 @@ def validate_info(account: Account) -> bool:
 
 @router.post("/create")
 def create_account(account: Account):
+    if len(account.first_name) == 0:
+        raise HTTPException(status_code=400, detail="A first name must be given.")
+    
+    if len(account.last_name) == 0:
+        raise HTTPException(status_code=400, detail=f"A last name must be given.")
+
     validate_info(account)
     
     with db.engine.begin() as connection:
