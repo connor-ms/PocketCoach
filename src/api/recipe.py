@@ -54,6 +54,12 @@ class Ingredient(BaseModel):
 @router.post("/{recipe_id}/ingredients")
 def add_ingredient(recipe_id: int, ingredient: Ingredient):
     with db.engine.begin() as connection:
+        if ingredient.quantity <= 0.0:
+            raise HTTPException(status_code=400, detail="Invalid ingredient quantity given. Quantity must be > 0.")
+        
+        if ingredient.quantity > 100:
+            raise HTTPException(status_code=400, detail="Invalid ingredient quantity given. Quantity must be <= 100.")
+
         ingredients = connection.execute(sqlalchemy.text(
             "SELECT 1 FROM usda_branded WHERE fdc_id = :ingredient_id"),
             { "ingredient_id": ingredient.ingredient_id }
